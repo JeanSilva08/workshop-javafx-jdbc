@@ -1,11 +1,11 @@
 package gui;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
-
 import application.Main;
 import db.DbIntegrityException;
 import gui.listeners.DataChangeListener;
@@ -16,7 +16,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -24,23 +26,20 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.Pane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import model.entities.Seller;
 import model.services.SellerService;
 
 public class SellerListController implements Initializable, DataChangeListener {
-
 	private SellerService service;
-
 	@FXML
 	private TableView<Seller> tableViewSeller;
-
 	@FXML
 	private TableColumn<Seller, Integer> tableColumnId;
-
 	@FXML
 	private TableColumn<Seller, String> tableColumnName;
-	
 	@FXML
 	private TableColumn<Seller, String> tableColumnEmail;
 
@@ -52,13 +51,10 @@ public class SellerListController implements Initializable, DataChangeListener {
 
 	@FXML
 	private TableColumn<Seller, Seller> tableColumnEDIT;
-
 	@FXML
 	private TableColumn<Seller, Seller> tableColumnREMOVE;
-
 	@FXML
 	private Button btNew;
-
 	private ObservableList<Seller> obsList;
 
 	@FXML
@@ -85,7 +81,6 @@ public class SellerListController implements Initializable, DataChangeListener {
 		Utils.formatTableColumnDate(tableColumnBirthDate, "dd/MM/yyyy");
 		tableColumnBaseSalary.setCellValueFactory(new PropertyValueFactory<>("baseSalary"));
 		Utils.formatTableColumnDouble(tableColumnBaseSalary, 2);
-
 		Stage stage = (Stage) Main.getMainScene().getWindow();
 		tableViewSeller.prefHeightProperty().bind(stage.heightProperty());
 	}
@@ -97,21 +92,19 @@ public class SellerListController implements Initializable, DataChangeListener {
 		List<Seller> list = service.findAll();
 		obsList = FXCollections.observableArrayList(list);
 		tableViewSeller.setItems(obsList);
-
 		initEditButtons();
 		initRemoveButtons();
-
 	}
 
 	private void createDialogForm(Seller obj, String absoluteName, Stage parentStage) {
-		/***try {
+		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource(absoluteName));
 			Pane pane = loader.load();
 
 			SellerFormController controller = loader.getController();
 			controller.setSeller(obj);
-			controller.SetSellerService(new SellerService());
-			controller.subscribeDatChangeListener(this);
+			controller.setSellerService(new SellerService());
+			controller.subscribeDataChangeListener(this);
 			controller.updateFormData();
 
 			Stage dialogStage = new Stage();
@@ -123,8 +116,7 @@ public class SellerListController implements Initializable, DataChangeListener {
 			dialogStage.showAndWait();
 		} catch (IOException e) {
 			Alerts.showAlert("IO Exception", "Error loading view", e.getMessage(), AlertType.ERROR);
-		}*/
-
+		}
 	}
 
 	@Override
@@ -145,8 +137,7 @@ public class SellerListController implements Initializable, DataChangeListener {
 					return;
 				}
 				setGraphic(button);
-				button.setOnAction(
-						event -> createDialogForm(obj, "/gui/SellerForm.fxml", Utils.currentStage(event)));
+				button.setOnAction(event -> createDialogForm(obj, "/gui/SellerForm.fxml", Utils.currentStage(event)));
 			}
 		});
 	}
@@ -166,13 +157,11 @@ public class SellerListController implements Initializable, DataChangeListener {
 				setGraphic(button);
 				button.setOnAction(event -> removeEntity(obj));
 			}
-
 		});
 	}
 
 	private void removeEntity(Seller obj) {
 		Optional<ButtonType> result = Alerts.showConfirmation("Confirmation", "Are you sure to delete?");
-
 		if (result.get() == ButtonType.OK) {
 			if (service == null) {
 				throw new IllegalStateException("Service was null");
@@ -182,9 +171,7 @@ public class SellerListController implements Initializable, DataChangeListener {
 				updateTableView();
 			} catch (DbIntegrityException e) {
 				Alerts.showAlert("Error removing object", null, e.getMessage(), AlertType.ERROR);
-
 			}
-			service.remove(obj);
 		}
 	}
 }
